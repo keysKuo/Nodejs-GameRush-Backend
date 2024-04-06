@@ -3,10 +3,11 @@ const Schema = mongoose.Schema;
 
 const Product = new Schema(
     {
-        productId: { type: String, required: true, default: 'AX' + Math.floor(Math.random() * 999999) },
+        productId: { type: String, required: true },
         encryptedData: { type: String, required: true },
         expiry: { type: Date, required: true, default: new Date() },
-        typeId: { type: mongoose.Types.ObjectId, ref: 'ProductType' }
+        status: { type: String, required: true, enum: 'sold' },
+        productType: { type: mongoose.Types.ObjectId, ref: 'ProductType' },
     },
     {
         timestamps: true,

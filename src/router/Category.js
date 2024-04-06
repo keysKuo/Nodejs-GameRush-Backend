@@ -8,5 +8,8 @@ router.get('/readMany', CategoryController.ReadMany);
 
 router.get('/readOne/:categoryId', CategoryController.ReadOne);
 
+router.put('/update/:categoryId', CategoryController.Update);
+
+router.delete('/delete/:categoryId', CategoryController.Delete);
 
 module.exports = router;

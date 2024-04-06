@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const Category = new Schema(
     {
-        categoryId: { type: String, required: true, default: 'CA' + Math.floor(Math.random() * 999999) },
+        categoryId: { type: String, required: true },
         categoryName: { type: String, required: true }
     },
     {

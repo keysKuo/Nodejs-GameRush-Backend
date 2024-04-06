@@ -1,11 +1,24 @@
 const { ProductType } = require('../models/');
-
+const fs = require('fs-extra');
 // CRUD
 
 async function Create(req, res, next) {
     const { typeName, description, status, originalPrice, sellPrice } = req.body;
+    const file = req.file;
 
-    return await ProductType.create({ ...req.body, typeId: 'PR' + Math.floor(Math.random() * 999999) })
+    if (!file) {
+        return res.json({
+            sucess: false,
+            status: 300,
+            msg: 'Image not found',
+        });
+    }
+
+    return await ProductType.create({
+        ...req.body,
+        image: 'uploads/' + file.filename,
+        typeId: 'PR' + Math.floor(Math.random() * 999999),
+    })
         .then((type) => {
             return res.json({
                 success: true,
@@ -26,8 +39,17 @@ async function Create(req, res, next) {
 async function Update(req, res, next) {
     const { typeId } = req.params;
 
-    return await ProductType.findOneAndUpdate({ typeId }, { ...req.body }, { returnOriginal: false })
+    const updatedData = { ...req.body };
+    if(req.file) {
+        updatedData['image'] = 'uploads/' + req.file.filename
+    }
+
+    return await ProductType.findOneAndUpdate({ typeId }, { ...updatedData }, { returnOriginal: true })
         .then((type) => {
+            if(req.file) {
+                fs.unlinkSync('./src/public/' + type.image);
+            }
+
             return res.json({
                 success: true,
                 status: 200,

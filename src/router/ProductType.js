@@ -1,8 +1,10 @@
 const { ProductTypeController } = require('../controllers');
+const { upload } = require('../middlewares/multer');
+
 const express = require('express');
 const router = express.Router();
 
-router.post('/create', ProductTypeController.Create);
+router.post('/create', upload.single('file'), ProductTypeController.Create);
 
 router.put('/update/:typeId', ProductTypeController.Update);
 

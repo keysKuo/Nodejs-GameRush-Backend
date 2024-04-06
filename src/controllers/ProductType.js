@@ -28,6 +28,7 @@ async function Create(req, res, next) {
             });
         })
         .catch((err) => {
+            fs.unlinkSync(file.path);
             return res.json({
                 success: false,
                 status: 500,

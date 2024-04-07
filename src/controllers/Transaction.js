@@ -1,6 +1,10 @@
-const { Transaction, Product } = require('../models/');
+const { sendMail, mailForm } = require('../utils/mail');
+const { Transaction, Product, Customer } = require('../models/');
 const { createPaypalSession, createStripeSession, exchangeRate } = require('../utils/payments');
 // CRUD
+const { encryptAES, decryptAES } = require('../utils/crypto');
+require('dotenv').config();
+const secretKey = process.env.ACCESS_TOKEN_SECRET || 'afhhica';
 
 async function Create(req, res, next) {
     return await Transaction.create({
@@ -8,7 +12,36 @@ async function Create(req, res, next) {
         transactionId: 'TS' + +Math.floor(Math.random() * 999999),
         status: 'completed',
     })
-        .then((transaction) => {
+        .then(async (transaction) => {
+            const customer = await Customer.findById(transaction.customer).lean();
+            const products = await Product.find({ _id: { $in: transaction.products }, status: 'available' }).lean();
+
+            if(products.length != transaction.products.length) {
+                return res.json({
+                    success: false,
+                    status: 404,
+                    msg: 'Products not found',
+                });
+            }
+
+            const options = {
+                to: customer.email,
+                subject: 'Thông tin đơn hàng từ GameRush',
+                text: `Xin chào ${customer.fullname}`,
+                html: mailForm({
+                    logo_link: process.env.LOGO_LINK || '',
+                    caption: `Thông tin đơn hàng từ GameRush`,
+                    content: `
+                        ${products.map((product) => {
+                            return decryptAES(product.encryptedData, secretKey);
+                        })}
+                    `,
+                }),
+            };
+
+            sendMail(options);
+
+            await Product.updateMany({_id: { $in: transaction.products}}, { status: 'sold'});
             return res.json({
                 success: true,
                 status: 200,
@@ -112,17 +145,17 @@ async function CreatePaymentSession(req, res, next) {
     const rate = await exchangeRate('vnd', 'usd');
 
     const listOfProducts = await Product.find({ _id: { $in: products } })
-        .populate({ path: 'productType'})
+        .populate({ path: 'productType' })
         .lean();
 
-    if(listOfProducts.length == 0) {
+    if (listOfProducts.length == 0) {
         return res.json({
             success: false,
             status: 404,
             msg: 'Products not found',
         });
     }
-    
+
     const options = {
         items: listOfProducts.map((product) => {
             return {

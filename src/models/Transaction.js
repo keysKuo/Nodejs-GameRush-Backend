@@ -5,7 +5,7 @@ const Transaction = new Schema(
     {
         transactionId: { type: String, required: true },
         products: [{ type: mongoose.Types.ObjectId, ref: 'Product' }],
-        customerId: { type: mongoose.Types.ObjectId, ref: 'Customer' },
+        customer: { type: mongoose.Types.ObjectId, ref: 'Customer' },
         total: { type: Number, required: true, default: 0 },
         paymentType: { type: String, required: true, enum: ['paypal', 'stripe'] },
         status: { type: String, required: true, enum: ['pending', 'completed', 'cancelled'] },
